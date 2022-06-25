@@ -4,8 +4,15 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { theMovieDBApis } from '~/utils/apis'
 
 export default Vue.extend({
-  name: 'IndexPage'
+  name: 'HomePage',
+  data: () => ({
+
+  }),
+  mounted () {
+    console.log(theMovieDBApis)
+  }
 })
 </script>
