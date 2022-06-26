@@ -17,6 +17,15 @@
         <img :src="image.src" alt="movie.title" class="rounded-lg">
       </div>
       <div class="col-span-2">
+        <div class="flex mb-5">
+          <StarRating
+            :item-size="20"
+            :increment="0.5"
+            read-only
+            :show-rating="false"
+            :rating="movie.vote_average/2"
+          />
+        </div>
         <div v-for="item in table.rows.items" :key="item.name" class="flex mb-3">
           <span class="font-medium">{{ item.name }}</span>
           <span class="ml-auto">{{ item.value }}</span>
@@ -48,12 +57,16 @@
 </template>
 
 <script>
+import { StarRating } from 'vue-rate-it'
 import { theMovieDBApis } from '@/utils/apis'
 import numberMixin from '@/mixins/numberMixin'
 import timeMixin from '@/mixins/timeMixin'
 
 export default {
   name: 'MovieDetails',
+  components: {
+    StarRating
+  },
   mixins: [numberMixin, timeMixin],
   async asyncData ({ $axios, params }) {
     let movie
