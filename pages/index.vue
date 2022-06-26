@@ -1,23 +1,32 @@
 <template>
-  <div class="container max-w-6xl mx-auto py-16">
-    <div class="grid grid-cols-3 gap-x-16 gap-y-6">
-      <figure v-for="movie in movies" :key="movie.id" class="md:flex rounded-lg p-1 border">
-        <img class="w-5/12 h-auto rounded-l-lg" :src="movie.poster_path" :alt="movie.title">
-        <div class="p-2 grid grid-rows-3">
-          <p class="font-bold row-span-2">
-            {{ movie.title }}
-          </p>
-          <figcaption class="text-505050 text-xs">
-            <div class="flex items-center">
-              <IconCalendar class="mr-1" />
-              {{ movie.release_date }}
-            </div>
-            <div class="mt-2">
-              {{ movie.genres.toString().replaceAll(',', ' ● ') }}
-            </div>
-          </figcaption>
-        </div>
-      </figure>
+  <div>
+    <TopBar>
+      <span>Search by release date:</span>
+      <input type="text" class="ml-6">
+      <button class="ml-auto text-white px-5 py-2 rounded-full">
+        Search
+      </button>
+    </TopBar>
+    <div class="grid grid-cols-3 gap-x-16 gap-y-10">
+      <NuxtLink v-for="movie in movies" :key="movie.id" :to="{name: 'id', params: {id: movie.id}}">
+        <figure class="md:flex rounded-lg p-1 border">
+          <img class="w-5/12 h-auto rounded-l-lg" :src="movie.poster_path" :alt="movie.title">
+          <div class="p-2 grid grid-rows-3">
+            <p class="font-bold row-span-2">
+              {{ movie.title }}
+            </p>
+            <figcaption class="text-505050 text-xs">
+              <div class="flex items-center">
+                <IconCalendar class="mr-1" />
+                {{ movie.release_date }}
+              </div>
+              <div class="mt-2">
+                {{ movie.genres.toString().replaceAll(',', ' ● ') }}
+              </div>
+            </figcaption>
+          </div>
+        </figure>
+      </NuxtLink>
     </div>
   </div>
 </template>
@@ -46,7 +55,8 @@ export default Vue.extend({
       baseURL: theMovieDBApis.baseUrl,
       url: theMovieDBApis.movie.genres,
       params: {
-        api_key: theMovieDBApis.apiKey
+        api_key: theMovieDBApis.apiKey,
+        language: theMovieDBApis.language
       }
     }).then(({ data }) => {
       this.genres = data.genres
@@ -56,7 +66,8 @@ export default Vue.extend({
       baseURL: theMovieDBApis.baseUrl,
       url: theMovieDBApis.movie.discover,
       params: {
-        api_key: theMovieDBApis.apiKey
+        api_key: theMovieDBApis.apiKey,
+        language: theMovieDBApis.language
       }
     }).then(({ data }) => {
       this.response = data
