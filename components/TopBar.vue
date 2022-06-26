@@ -4,12 +4,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'SearchBar'
-}
-</script>
-
 <style scoped>
 .top-bar-mold {
   background-color: #E2E2E2;

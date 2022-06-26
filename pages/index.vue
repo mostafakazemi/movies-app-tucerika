@@ -7,7 +7,13 @@
         Search
       </button>
     </TopBar>
-    <div class="grid grid-cols-3 gap-x-16 gap-y-10">
+    <div v-if="$fetchState.error">
+      fetch error
+    </div>
+    <div v-else-if="$fetchState.pending">
+      fetch pending ..
+    </div>
+    <div v-else class="grid grid-cols-3 gap-x-16 gap-y-10">
       <NuxtLink v-for="movie in movies" :key="movie.id" :to="{name: 'id', params: {id: movie.id}}">
         <figure class="md:flex rounded-lg p-1 border">
           <img class="w-5/12 h-auto rounded-l-lg" :src="movie.poster_path" :alt="movie.title">
@@ -28,10 +34,13 @@
         </figure>
       </NuxtLink>
     </div>
+    <div class="flex justify-center mt-32">
+      <Pagination v-model="pagination.page" :count-of-items="pagination.countOfItems" :total-pages="pagination.totalPages" />
+    </div>
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from 'vue'
 import { theMovieDBApis } from '~/utils/apis'
 
@@ -39,10 +48,16 @@ export default Vue.extend({
   name: 'HomePage',
   data () {
     return {
+      pagination: {
+        countOfItems: 20,
+        page: parseInt(this.$route.query.page || 1),
+        totalPages: undefined
+      },
       image: {
         preUrl: theMovieDBApis.image.baseUrl + theMovieDBApis.image.sizes.w440andH660
       },
-      response: {
+      fetchedMovies: [],
+      movieResponse: {
         results: []
       },
       genres: []
@@ -50,6 +65,47 @@ export default Vue.extend({
   },
   fetchOnServer: false,
   fetch () {
+    // fetch movies
+    this.$axios({
+      baseURL: theMovieDBApis.baseUrl,
+      url: theMovieDBApis.movie.discover,
+      params: {
+        api_key: theMovieDBApis.apiKey,
+        page: this.pagination.page,
+        language: theMovieDBApis.language
+      }
+    }).then(({ data }) => {
+      this.movieResponse = data
+      this.pagination.page = data.page
+      this.pagination.totalPages = data.total_pages
+    })
+  },
+  computed: {
+    movies () {
+      if (this.movieResponse.results) {
+        return this.movieResponse.results.map((movie) => {
+          movie.poster_path = this.image.preUrl + movie.poster_path
+          movie.genres = movie.genre_ids.map(id => this.genres.find(genre => genre.id === id).name)
+          return movie
+        })
+      }
+      return []
+    }
+  },
+  watch: {
+    'pagination.page': {
+      handler (page) {
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            page: page === 1 ? undefined : page
+          }
+        })
+      }
+    },
+    '$route.query': '$fetch'
+  },
+  beforeMount () {
     // fetch genres
     this.$axios({
       baseURL: theMovieDBApis.baseUrl,
@@ -61,27 +117,6 @@ export default Vue.extend({
     }).then(({ data }) => {
       this.genres = data.genres
     })
-    // fetch movies
-    this.$axios({
-      baseURL: theMovieDBApis.baseUrl,
-      url: theMovieDBApis.movie.discover,
-      params: {
-        api_key: theMovieDBApis.apiKey,
-        language: theMovieDBApis.language
-      }
-    }).then(({ data }) => {
-      this.response = data
-    })
-  },
-  computed: {
-    movies () {
-      const genres = [...this.genres]
-      return this.response.results.map((movie) => {
-        movie.poster_path = this.image.preUrl + movie.poster_path
-        movie.genres = movie.genre_ids.map(id => genres.find(genre => genre.id === id).name)
-        return movie
-      })
-    }
   }
 })
 </script>
