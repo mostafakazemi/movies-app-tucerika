@@ -23,7 +23,7 @@
         </div>
         <div v-for="item in table.rows.links" :key="item.name" class="flex mb-3">
           <span class="font-medium">{{ item.name }}</span>
-          <a :href="item.href" class="ml-auto underline custom-link">Link</a>
+          <a :href="item.href" class="ml-auto underline text-link">Link</a>
         </div>
       </div>
     </div>
@@ -34,7 +34,15 @@
       <div class="font-bold">
         Credit:
       </div>
-      <p>{{ credits.toString() }}</p>
+      <p class="text-sm">
+        <template v-if="showMore || !credits.moreLength">
+          {{ credits.all }}
+        </template>
+        <template v-else>
+          {{ credits.topTen }}
+          <span class="cursor-pointer text-link font-bold" @click="showMore=true">and {{ credits.moreLength }} more</span>
+        </template>
+      </p>
     </div>
   </div>
 </template>
@@ -128,7 +136,8 @@ export default {
       vote_average: 7.564,
       vote_count: 3233
     },
-    credits: []
+    allCredits: [],
+    showMore: false
   }),
   head () {
     return {
@@ -182,6 +191,22 @@ export default {
           ]
         }
       }
+    },
+    credits () {
+      const credits = {
+        all: '',
+        topTen: '',
+        more: '',
+        moreLength: 0
+      }
+      if (this.allCredits.length) {
+        credits.all = this.allCredits.toString().replaceAll(',', ' , ')
+        credits.topTen = this.allCredits.filter((_, index) => index < 10).toString().replaceAll(',', ' , ')
+        const more = this.allCredits.filter((_, index) => index > 9)
+        credits.moreLength = more.length
+        credits.more = more.toString().replaceAll(',', ' , ')
+      }
+      return credits
     }
   },
   mounted () {
@@ -197,7 +222,7 @@ export default {
           language: theMovieDBApis.language
         }
       }).then(({ data }) => {
-        this.credits = data.cast.map(cast => cast.name)
+        this.allCredits = data.cast.map(cast => cast.name)
       })
     }
   }
@@ -205,7 +230,7 @@ export default {
 </script>
 
 <style scoped>
-.custom-link {
+.text-link {
   color: #318FE7;
 }
 </style>
