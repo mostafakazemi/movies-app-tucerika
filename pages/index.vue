@@ -3,21 +3,16 @@
     <!--    Top bar-->
     <TopBar>
       <span>Search by release date:</span>
-      <input type="text" class="ml-6">
-      <button class="ml-auto text-white px-5 py-2 rounded-full">
+      <Datepicker v-model="filters.dateRange" range lang="en" class="ml-6" />
+      <button class="ml-auto text-white px-5 py-2 rounded-full" @click="applyDates">
         Search
       </button>
     </TopBar>
-    <!--    Date filter-->
-    <div class="mb-10 flex bg-green-100 py-5 px-2 rounded-lg">
-      <Datepicker v-model="filters.dateRange" range lang="en" />
-      <button class="ml-2 bg-green-400 text-white px-6 py-2 rounded-md" @click="applyDates">
-        Apply
-      </button>
-    </div>
+    <!--    Error-->
     <div v-if="$fetchState.error">
       fetch error
     </div>
+    <!--    Loading-->
     <div v-else-if="$fetchState.pending">
       fetch pending ..
     </div>
