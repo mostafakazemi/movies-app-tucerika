@@ -157,7 +157,7 @@ export default {
           language: theMovieDBApis.language
         }
       }).then(({ data }) => {
-        this.allCredits = data.cast.map(cast => cast.name)
+        this.allCredits = data.cast.sort((a, b) => a.popularity < b.popularity ? 1 : -1).map(cast => cast.name)
       })
     }
   }

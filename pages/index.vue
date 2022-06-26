@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!--    Top bar-->
     <TopBar>
       <span>Search by release date:</span>
       <input type="text" class="ml-6">
@@ -7,12 +8,20 @@
         Search
       </button>
     </TopBar>
+    <!--    Date filter-->
+    <div class="mb-10 flex bg-green-100 py-5 px-2 rounded-lg">
+      <Datepicker v-model="filters.dateRange" range lang="en" />
+      <button class="ml-2 bg-green-400 text-white px-6 py-2 rounded-md" @click="applyDates">
+        Apply
+      </button>
+    </div>
     <div v-if="$fetchState.error">
       fetch error
     </div>
     <div v-else-if="$fetchState.pending">
       fetch pending ..
     </div>
+    <!--    Cards-->
     <div v-else class="grid grid-cols-3 gap-x-16 gap-y-10">
       <NuxtLink v-for="movie in movies" :key="movie.id" :to="{name: 'id', params: {id: movie.id}}">
         <figure class="md:flex rounded-lg p-1 border">
@@ -34,6 +43,7 @@
         </figure>
       </NuxtLink>
     </div>
+    <!--    Pagination-->
     <div class="flex justify-center mt-32">
       <Pagination v-model="pagination.page" :count-of-items="pagination.countOfItems" :total-pages="pagination.totalPages" />
     </div>
@@ -42,10 +52,15 @@
 
 <script>
 import Vue from 'vue'
+import VueDatepickerUi from 'vue-datepicker-ui'
 import { theMovieDBApis } from '~/utils/apis'
+import 'vue-datepicker-ui/lib/vuedatepickerui.css'
 
 export default Vue.extend({
   name: 'HomePage',
+  components: {
+    Datepicker: VueDatepickerUi
+  },
   data () {
     return {
       pagination: {
@@ -60,18 +75,28 @@ export default Vue.extend({
       movieResponse: {
         results: []
       },
-      genres: []
+      genres: [],
+      filters: {
+        dateRange: this.$route.query['dates[]'] || []
+      }
     }
   },
   fetchOnServer: false,
   fetch () {
     // fetch movies
+    const dateParams = {}
+    const datesQuery = this.$route.query['dates[]']
+    if (datesQuery && datesQuery[0]) {
+      dateParams['release_date.gte'] = datesQuery[0]
+      if (datesQuery[1]) { dateParams['release_date.lte'] = datesQuery[1] }
+    }
     this.$axios({
       baseURL: theMovieDBApis.baseUrl,
       url: theMovieDBApis.movie.discover,
       params: {
         api_key: theMovieDBApis.apiKey,
         page: this.pagination.page,
+        ...dateParams,
         language: theMovieDBApis.language
       }
     }).then(({ data }) => {
@@ -117,6 +142,20 @@ export default Vue.extend({
     }).then(({ data }) => {
       this.genres = data.genres
     })
+  },
+  methods: {
+    applyDates () {
+      const dates = []
+      this.filters.dateRange.forEach((date) => {
+        if (date) { dates.push(new Date(date).toISOString().split('T')[0]) }
+      })
+      this.$router.push({
+        query: {
+          ...this.$route.query,
+          'dates[]': dates.length ? dates : undefined
+        }
+      })
+    }
   }
 })
 </script>
